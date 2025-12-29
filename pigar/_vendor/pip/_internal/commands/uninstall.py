@@ -1,12 +1,11 @@
 import logging
 from optparse import Values
-from typing import List
 
 from pigar._vendor.pip._vendor.packaging.utils import canonicalize_name
 
 from pigar._vendor.pip._internal.cli import cmdoptions
 from pigar._vendor.pip._internal.cli.base_command import Command
-from pigar._vendor.pip._internal.cli.req_command import SessionCommandMixin, warn_if_run_as_root
+from pigar._vendor.pip._internal.cli.index_command import SessionCommandMixin
 from pigar._vendor.pip._internal.cli.status_codes import SUCCESS
 from pigar._vendor.pip._internal.exceptions import InstallationError
 from pigar._vendor.pip._internal.req import parse_requirements
@@ -17,6 +16,7 @@ from pigar._vendor.pip._internal.req.constructors import (
 from pigar._vendor.pip._internal.utils.misc import (
     check_externally_managed,
     protect_pip_from_modification_on_windows,
+    warn_if_run_as_root,
 )
 
 logger = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ class UninstallCommand(Command, SessionCommandMixin):
         self.cmd_opts.add_option(cmdoptions.override_externally_managed())
         self.parser.insert_option_group(0, self.cmd_opts)
 
-    def run(self, options: Values, args: List[str]) -> int:
+    def run(self, options: Values, args: list[str]) -> int:
         session = self.get_default_session(options)
 
         reqs_to_uninstall = {}

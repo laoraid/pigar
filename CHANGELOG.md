@@ -1,5 +1,40 @@
 ### Change Logs
 
+#### Version 2.2.0
+
+See what’s changed in detail [between v2.1.7 and v2.2.0](https://github.com/damnever/pigar/compare/v2.1.7...v2.2.0).
+
+
+#### Version 2.1.7
+
+See what’s changed in detail [between v2.1.6 and v2.1.7](https://github.com/damnever/pigar/compare/v2.1.6...v2.1.7).
+
+
+#### Version 2.1.6 (2024.07.10)
+
+See what’s changed in detail [between v2.1.5 and v2.1.6](https://github.com/damnever/pigar/compare/v2.1.5...v2.1.6).
+
+
+#### Version 2.1.5 (2024.07.10) - Invalid
+
+See what’s changed in detail [between v2.1.4 and v2.1.5](https://github.com/damnever/pigar/compare/v2.1.4...v2.1.5).
+
+
+#### Version 2.1.4 (2024.03.09)
+
+See what’s changed in detail [between v2.1.3 and v2.1.4](https://github.com/damnever/pigar/compare/v2.1.3...v2.1.4).
+
+
+#### Version 2.1.3 (2024.02.19)
+
+See what’s changed in detail [between v2.1.2 and v2.1.3](https://github.com/damnever/pigar/compare/v2.1.2...v2.1.3).
+
+
+#### Version 2.1.2 (2024.02.18)
+
+See what’s changed in detail [between v2.1.1 and v2.1.2](https://github.com/damnever/pigar/compare/v2.1.1...v2.1.2).
+
+
 #### Version 2.1.1 (2023.06.30)
 
 See what’s changed in detail [between v2.1.0 and v2.1.1](https://github.com/damnever/pigar/compare/v2.1.0...v2.1.1).

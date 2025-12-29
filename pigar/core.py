@@ -140,6 +140,7 @@ class RequirementsAnalyzer(object):
             distributions=self._installed_dists.values()
         )
         self._requirements = _LocatableRequirements()
+        self._cached_choices = dict()
         self._uncertain_requirements = collections.defaultdict(
             _LocatableRequirements
         )  # Multiple requirements for same import name.
@@ -283,6 +284,8 @@ class RequirementsAnalyzer(object):
             requirements = self._uncertain_requirements[import_name]
         for req in reqs:
             requirements.add_locs(req, locs, from_annotation=from_annotation)
+            # FIXME: treat this the same as _unknown_imports
+            self._unknown_dists_from_annotaions.pop(req.name, None)
 
     def search_unknown_imports_from_index(
         self,
@@ -392,7 +395,7 @@ class RequirementsAnalyzer(object):
 
         if self._uncertain_requirements:
             stream.write(
-                '\nWARNING(pigar): some manual fixes are required since pigar has found duplicate requirements for the same import name.\n'
+                '\n# WARNING(pigar): some manual fixes might be required as pigar has detected duplicate requirements for the same import name (possibly for different submodules).\n'  # noqa: E501
             )
             uncertain_requirements = sorted(
                 self._uncertain_requirements.items(),
@@ -400,7 +403,7 @@ class RequirementsAnalyzer(object):
             )
             for import_name, reqs in uncertain_requirements:
                 stream.write(
-                    f'# WARNING(pigar): the following duplicate requirements are for import name: {import_name}\n'
+                    f'# WARNING(pigar): the following duplicate requirements are for the import name: {import_name}\n'  # noqa: E501
                 )
                 with_ref_comments_once = with_ref_comments
                 for _, req in reqs.sorted_items():
@@ -429,15 +432,27 @@ class RequirementsAnalyzer(object):
                 else:
                     stream.write(f'# {import_name}\n')
 
-    def has_unknown_imports(self):
-        return len(self._unknown_imports) > 0
+    def has_unknown_imports_or_uninstalled_annotations(self):
+        return len(self._unknown_imports
+                   ) > 0 or len(self._unknown_dists_from_annotaions) > 0
 
-    def format_unknown_imports(self, stream):
+    def format_unknown_imports_or_uninstalled_annotations(self, stream):
+        has_unknown_imports = len(self._unknown_imports) > 0
         for idx, (name, locs) in enumerate(self._unknown_imports.items()):
             if idx > 0:
                 stream.write('\n')
             stream.write(
                 '  {0} referenced from:\n    {1}'.format(
+                    Color.YELLOW(name), '\n    '.join(locs.sorted_items())
+                )
+            )
+        for idx, (name, locs) in enumerate(
+            self._unknown_dists_from_annotaions.items()
+        ):
+            if idx > 0 or has_unknown_imports:
+                stream.write('\n')
+            stream.write(
+                '  {0} annotated at:\n    {1}'.format(
                     Color.YELLOW(name), '\n    '.join(locs.sorted_items())
                 )
             )
@@ -447,6 +462,10 @@ class RequirementsAnalyzer(object):
     ):
         if dists_filter is None or len(distributions) <= 1:
             return distributions
+        # We can use `functools.cache` in later versions of Python.
+        existing = self._cached_choices.get(import_name, None)
+        if existing is not None:
+            return existing
 
         assert (hasattr(distributions[0], 'name'))
 
@@ -467,7 +486,11 @@ class RequirementsAnalyzer(object):
             best_match = casefold_match
         if best_match is None and len(contains) == 1:
             best_match = contains[0]
-        return dists_filter(import_name, locations, distributions, best_match)
+        choosed = dists_filter(
+            import_name, locations, distributions, best_match
+        )
+        self._cached_choices[import_name] = choosed
+        return choosed
 
 
 class LocalRequirementWithLatestVersion(NamedTuple):
@@ -701,6 +724,11 @@ def check_stdlib(name: str, _sys_lib_paths=determine_python_sys_lib_paths()):
                 return False, None
 
     module_path = spec.origin
+    if sys.version_info[:2] >= (3, 10) and not {name, name.split('.')[0]} & set(
+        sys.stdlib_module_names
+    ):
+        return False, module_path
+
     if module_path is None or not os.path.isabs(module_path):
         return True, None
 
